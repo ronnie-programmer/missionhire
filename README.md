@@ -22,7 +22,7 @@ A job application tracker built with React and Supabase. Organize your job searc
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/ronnie-progammer/missionhire.git
+git clone https://github.com/ronnie-programmer/missionhire.git
 cd missionhire
 npm install
 ```
