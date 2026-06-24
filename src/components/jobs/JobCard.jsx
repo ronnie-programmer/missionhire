@@ -1,3 +1,34 @@
+// src/components/jobs/JobCard.jsx
+//
+// Draggable Kanban card representing a single job application.
+//
+// Draggable from @hello-pangea/dnd makes this element draggable.
+//   - draggableId={job.id} is a stable unique identifier for the library to track.
+//   - index={index} is the card's position within its column — required by the library.
+//   - The render prop `{(provided, snapshot) => ...}` attaches drag event listeners,
+//     styles, and aria attributes to the element via provided.draggableProps and
+//     provided.dragHandleProps (spread onto the same element here for simplicity).
+//
+// CLICK VS. DRAG:
+//   The card's onClick opens the edit modal. The delete button uses e.stopPropagation()
+//   so clicking the trash icon doesn't also trigger the card's onClick. This is a
+//   common pattern for nested interactive elements.
+//
+// PLATFORM DETECTION:
+//   If job.source is not set, detectPlatformFromUrl() inspects the job URL to
+//   infer the platform. This handles imported applications where source wasn't
+//   explicitly set.
+//
+// DATE FORMATTING:
+//   The date string from Postgres (e.g. "2025-03-15") is appended with T00:00:00
+//   before passing to Date() to force local-time parsing. Without this, browsers
+//   interpret bare YYYY-MM-DD as UTC midnight, which shifts the displayed date by
+//   one day in negative UTC offset timezones.
+//
+// DRAG VISUAL:
+//   snapshot.isDragging applies a rotation + scale + shadow effect to give tactile
+//   feedback that the card is being held and moved.
+
 import { Draggable } from '@hello-pangea/dnd'
 import { ExternalLink, Trash2, Calendar, DollarSign, Bell, User } from 'lucide-react'
 import PlatformBadge from '../ui/PlatformBadge'

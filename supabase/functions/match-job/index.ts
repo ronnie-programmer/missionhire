@@ -1,3 +1,34 @@
+/* supabase/functions/match-job/index.ts
+
+   Supabase Edge Function that scores a specific job against a user's profile.
+   Used by the MatchScore component in the EditJobModal "Match" tab.
+
+   PROFILE → PROMPT SERIALIZATION:
+   The userProfile object (camelCase, from the browser) is serialized into a
+   plain text block for the prompt. Text prompts are more natural for Claude
+   than raw JSON for this kind of qualitative analysis.
+   profileLines.filter(Boolean) removes empty lines when optional fields are absent.
+
+   GRACEFUL NO-PROFILE HANDLING:
+   If userProfile is null (user hasn't set up their profile), the profile section
+   of the prompt becomes "No profile provided — score based on job quality alone."
+   This lets Claude return a meaningful quality score (is this a good job?)
+   rather than failing or returning a useless 0.
+
+   JD TRUNCATION:
+   jobDescription.slice(0, 2000) prevents the prompt from exceeding token limits
+   and keeps costs predictable. Most meaningful job description content is in the
+   first 2000 characters; requirements and qualifications appear early.
+
+   MODEL (claude-sonnet-4-6):
+   Sonnet is used here (rather than Haiku) because this is a single, deep analysis
+   — quality matters more than speed. The scout-jobs batch scoring uses Haiku to
+   score many jobs cheaply; this single-job analysis can afford to use a better model.
+
+   INPUT:  { jobDescription, company, role, userProfile? }
+   OUTPUT: { result: { score, summary, matchingSkills, gaps, strengths, recommendation } }
+*/
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {

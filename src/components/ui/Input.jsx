@@ -1,3 +1,20 @@
+// src/components/ui/Input.jsx
+//
+// Reusable text input component with optional label and inline error message.
+//
+// The `id` prop is shared between the <label>'s htmlFor and the <input>'s id.
+// This linkage is important for accessibility — clicking the label focuses the
+// input, and screen readers announce the label when the input is focused.
+//
+// CONDITIONAL ERROR STYLE:
+//   When `error` is truthy the border changes to red (border-red-500) and the
+//   error string is displayed below the input. This collapses when error is
+//   falsy/undefined — no need for the caller to conditionally render anything.
+//
+// `...props` spread makes this component a drop-in replacement for <input> —
+//   callers can pass type="date", placeholder, autoFocus, onChange, etc.
+// without this component needing to know about them explicitly.
+
 export default function Input({ label, error, id, className = '', ...props }) {
   return (
     <div className="flex flex-col gap-1">

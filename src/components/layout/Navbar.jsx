@@ -1,3 +1,29 @@
+// src/components/layout/Navbar.jsx
+//
+// Sticky top navigation bar with active-route highlighting and logout.
+//
+// ACTIVE ROUTE HIGHLIGHTING:
+//   useLocation() returns the current URL pathname. navClass() compares the
+//   pathname to each link's path to apply a "selected" style. This is a manual
+//   implementation because React Router's <NavLink> component's className API
+//   is equivalent but slightly less readable for this pattern.
+//
+// STICKY + BACKDROP:
+//   `sticky top-0 z-40` keeps the navbar visible while scrolling.
+//   `bg-slate-900/80 backdrop-blur-md` makes it semi-transparent with a blur
+//   effect so page content scrolling under it looks polished.
+//
+// CONDITIONAL RENDERING:
+//   Nav links and the user email are only shown when `user` is truthy — the
+//   Navbar is reused across the app including the ConfirmPage where the user
+//   may not be authenticated yet. (Though in practice, Layout is only used on
+//   protected routes, so `user` will always be set when Navbar renders.)
+//
+// LOGOUT FLOW:
+//   logout() calls supabase.auth.signOut() which clears the session from
+//   localStorage. onAuthStateChange fires in AuthContext, sets user to null,
+//   which triggers the ProtectedRoute guard to redirect to /login automatically.
+
 import { Link, useLocation } from 'react-router-dom'
 import { LogOut, Briefcase, Plug, Search, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'

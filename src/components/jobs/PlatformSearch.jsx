@@ -1,3 +1,25 @@
+// src/components/jobs/PlatformSearch.jsx
+//
+// Quick-search widget on the Dashboard that opens job board search results in
+// new browser tabs — no server requests, no API keys needed.
+//
+// HOW IT WORKS:
+//   Each SEARCHABLE_PLATFORM has a searchUrl(query) function defined in platformUtils.js
+//   that constructs the platform's job search URL. Clicking a platform button calls
+//   window.open() with that URL, opening it in a new tab.
+//
+//   "Search All" iterates SEARCHABLE_PLATFORMS and opens every platform at once.
+//   This is a power-user feature — opening 4 tabs simultaneously.
+//
+// KEYBOARD SUPPORT:
+//   Pressing Enter in the input fires handleKeyDown which calls "Search All",
+//   making the widget keyboard-accessible without clicking any button.
+//
+// WHY NOT call the API from here?
+//   This widget is intentionally "dumb" — it delegates the actual search to the
+//   native job board UIs, which are more featureful and have their own filters.
+//   The AI-powered search on /find-jobs is the integration for automated scoring.
+
 import { useState } from 'react'
 import { Search, ExternalLink } from 'lucide-react'
 import { PLATFORMS, SEARCHABLE_PLATFORMS } from '../../utils/platformUtils'

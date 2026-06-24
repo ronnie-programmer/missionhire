@@ -1,3 +1,32 @@
+/* supabase/functions/generate-cover-letter/index.ts
+
+   Supabase Edge Function that generates a tailored cover letter using Claude.
+
+   SYSTEM vs. USER PROMPT:
+   This function uses Claude's two-field prompt structure:
+     system  — sets persistent persona and output rules ("be a career coach, 3-4 paragraphs...")
+     messages — provides the job-specific input for this particular call
+
+   Separating them is best practice because:
+   1. The system prompt is cached by Anthropic's API across calls, reducing latency.
+   2. It keeps the AI's "personality" stable regardless of the job description content.
+   3. The user message stays focused purely on the data (company, role, JD, background).
+
+   INPUT:
+     jobDescription — the full job posting text (required)
+     company        — company name (required, used in prompt context)
+     role           — role title (required, used in prompt context)
+     userBackground — optional resume summary; improves letter personalization
+
+   OUTPUT:
+     { coverLetter: string } — the letter body starting with "Dear Hiring Manager,"
+
+   The letter deliberately omits the applicant's name and contact info because
+   those are filled in by the user when they paste the letter into their application.
+
+   CORS and error handling follow the same pattern as analyze-job/index.ts.
+*/
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {

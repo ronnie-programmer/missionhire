@@ -1,3 +1,11 @@
+// src/pages/NotFoundPage.jsx
+//
+// 404 fallback page rendered by the wildcard route (`path="*"`) in App.jsx.
+// Any URL that doesn't match a defined route lands here.
+// The large "404" text is intentionally styled in a very dark color so it reads
+// as a subtle background element rather than an alarming error message.
+// The link navigates back to /dashboard — the app's primary entry point.
+
 import { Link } from 'react-router-dom'
 import { Home } from 'lucide-react'
 

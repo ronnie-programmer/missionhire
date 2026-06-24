@@ -1,3 +1,34 @@
+// src/pages/ProfilePage.jsx
+//
+// User profile editor. The profile data is used by the AI Edge Functions for
+// personalized job matching and cover letter generation.
+//
+// FORM STATE vs. PROFILE STATE:
+//   The `form` object is a local copy of the profile for editing. It is populated
+//   from the fetched `profile` in a useEffect when data arrives. This pattern
+//   (server state → local form state → save → update server state) prevents the
+//   user from seeing a blank form on load and allows unsaved changes without
+//   immediately affecting the rest of the app.
+//
+// TAG FIELDS (target_roles, skills):
+//   The database stores these as PostgreSQL ARRAY columns. The form represents
+//   them as comma-separated strings (easier to type). Two helpers manage the
+//   conversion:
+//     parseTags(str): "React, Python, AWS" → ["React", "Python", "AWS"]
+//     joinTags(arr):  ["React", "Python", "AWS"] → "React, Python, AWS"
+//   TagPreview shows the parsed chips in real time as the user types, so they
+//   can see exactly how the comma-separated input will be stored.
+//
+// HELPER set(field):
+//   Returns an onChange handler for a given field name. This avoids writing a
+//   separate handler for every input: set('full_name') returns an event handler
+//   that updates form.full_name. This is a common pattern for controlled forms.
+//
+// WHY resume_text INSTEAD OF a file upload?
+//   File uploads require storage infrastructure and parsing logic for PDF/DOCX.
+//   Plain text paste is simpler, works immediately, and is what the AI prompt
+//   actually needs — it reads text, not binary documents.
+
 import { useState, useEffect } from 'react'
 import { User, Briefcase, MapPin, FileText, Zap } from 'lucide-react'
 import { useProfile } from '../hooks/useProfile'

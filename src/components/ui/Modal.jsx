@@ -1,3 +1,33 @@
+// src/components/ui/Modal.jsx
+//
+// Accessible modal dialog with overlay, keyboard close, and scroll lock.
+//
+// SCROLL LOCK:
+//   When the modal opens, document.body.style.overflow is set to 'hidden' so
+//   the page behind the modal can't be scrolled. The cleanup function restores
+//   'unset' when the modal closes OR when the component unmounts. Without this,
+//   the page would be permanently unscrollable after a modal closes during unmount.
+//
+// ESC KEY HANDLER:
+//   A keydown listener is added to window only while the modal is open.
+//   The cleanup removes it when the modal closes or the component unmounts,
+//   preventing stale listeners from accumulating. ESC is a standard UX pattern
+//   for dismissing dialogs.
+//
+// OVERLAY CLICK:
+//   Clicking the dark backdrop (`absolute inset-0`) calls onClose, matching user
+//   expectations for dismissing a dialog. The modal content itself is `relative`
+//   and sits above the backdrop — clicks on it do not propagate to the backdrop.
+//
+// CONDITIONAL RENDER:
+//   `if (!isOpen) return null` completely removes the modal from the DOM when
+//   closed. This avoids the overhead of a hidden but mounted complex form,
+//   and also ensures that the modal's internal state (form values, etc.) resets
+//   naturally when it unmounts.
+//
+// size prop controls max width — allows different modals to be appropriately
+//   sized (a confirm dialog doesn't need the same width as a multi-tab editor).
+
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
 

@@ -1,3 +1,16 @@
+// src/components/ui/Textarea.jsx
+//
+// Reusable multi-line text input with the same label/error API as Input.jsx.
+// The two components share the same design — same border color, background,
+// focus ring, and error state — so they look consistent when used together in forms.
+//
+// `resize-none` disables the user's ability to drag-resize the textarea, which
+// would break the layout in fixed-height form containers. The `rows` prop controls
+// the initial visible height instead.
+//
+// Like Input.jsx, `...props` spreads through any standard textarea attributes
+// (placeholder, onChange, value, disabled, etc.).
+
 export default function Textarea({ label, error, id, rows = 4, className = '', ...props }) {
   return (
     <div className="flex flex-col gap-1">

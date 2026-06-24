@@ -1,3 +1,25 @@
+// src/components/jobs/KanbanColumn.jsx
+//
+// One column of the Kanban board, representing a single job status (e.g., "Applied").
+//
+// Droppable from @hello-pangea/dnd makes this container a valid drop target.
+//   - droppableId={status} is the identifier KanbanBoard uses in handleDragEnd
+//     to know which column the card was dropped into (destination.droppableId).
+//   - The render prop pattern `{(provided, snapshot) => ...}` is required by the
+//     library — provided supplies ref and drag-related props to the DOM element,
+//     snapshot tells us whether a card is actively being dragged over this column.
+//   - provided.placeholder must be rendered inside the Droppable container so the
+//     library can maintain the correct height while a card is being dragged out.
+//
+// VISUAL FEEDBACK:
+//   When `snapshot.isDraggingOver` is true, the column background changes to the
+//   status-specific accent color, giving the user a clear drop target indicator.
+//
+// ADD BUTTON:
+//   The "+" button is only shown in the 'saved' column because that is the natural
+//   starting status for new applications. Adding directly to other statuses
+//   would be unusual workflow and create UX confusion.
+
 import { Droppable } from '@hello-pangea/dnd'
 import { Plus } from 'lucide-react'
 import JobCard from './JobCard'

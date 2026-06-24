@@ -1,3 +1,28 @@
+// src/pages/ConfirmPage.jsx
+//
+// Email confirmation landing page. The user arrives here by clicking the link
+// in the registration confirmation email that Supabase sends.
+//
+// HOW EMAIL CONFIRMATION WORKS:
+//   Supabase appends the confirmation token to the redirect URL as a URL hash
+//   fragment, e.g.: /confirm#access_token=...&type=signup
+//   Hash fragments (#) are NOT sent to the server — they are browser-only.
+//   This is intentional: the token never travels over the network to our server.
+//
+// DETECTION LOGIC:
+//   1. Check window.location.hash for access_token + type=signup. If found, the
+//      confirmation was successful and Supabase has already created the session.
+//      We auto-redirect to /dashboard after 2.5 seconds.
+//   2. If no hash token (e.g., user navigated here directly), call getSession()
+//      to check if they have a valid session from a previous confirmation.
+//   3. If neither, show an error — the link may have expired (tokens are one-time use
+//      and typically expire after 24 hours) or already been clicked.
+//
+// THREE UI STATES:
+//   'loading' → spinner while we parse the URL / check the session
+//   'success' → green check + countdown redirect
+//   'error'   → red X + explanation + link back to register
+
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckCircle, XCircle } from 'lucide-react'

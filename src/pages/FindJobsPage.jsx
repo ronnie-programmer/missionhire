@@ -1,3 +1,32 @@
+// src/pages/FindJobsPage.jsx
+//
+// AI-powered job discovery page. Users enter a search query, the app calls the
+// `scout-jobs` Edge Function which fetches from Remotive + The Muse APIs and
+// batch-scores results with Claude Haiku, then displays them ranked by fit.
+//
+// PROFILE-AWARE DEFAULTS:
+//   If the user has a saved profile, the search inputs are pre-populated with
+//   their target role and location as placeholder text (shown when fields are empty).
+//   When submitting, empty fields fall back to profile values — profile.target_roles[0]
+//   or 'software engineer' — so even a blank search uses the user's preferences.
+//
+// LOADING MESSAGE ANIMATION (useLoadingMessage):
+//   This custom inline hook cycles through LOADING_MESSAGES every 2 seconds while
+//   the scout request is in flight. It gives users feedback on what the backend is
+//   doing (fetching listings → scoring with AI) during what can be a 10-20 second wait.
+//   NOTE: The interval is started directly during render (not in a useEffect) —
+//   this works but is unconventional. A useEffect would be the stricter approach.
+//
+// THREE EMPTY STATES:
+//   1. !searched && !loading: initial page load — prompt the user to search
+//   2. searched && results.length === 0: search ran but found nothing
+//   3. results.length > 0: show the grid of JobResultCard components
+//
+// ADDING TO TRACKER:
+//   handleAddToTracker() calls createJob() from useJobs to insert a new row in
+//   job_applications with status='saved'. The `addingId` state tracks which card
+//   is currently being added so its button shows a loading state.
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, AlertCircle, Briefcase } from 'lucide-react'

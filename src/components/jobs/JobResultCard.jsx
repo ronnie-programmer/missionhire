@@ -1,3 +1,30 @@
+// src/components/jobs/JobResultCard.jsx
+//
+// Displays a single job result from the AI scout search. Shows match score,
+// expandable match details, and a button to add the job to the tracker.
+//
+// ScoreBadge:
+//   The score (0–100) comes from Claude Haiku's batch scoring in the scout-jobs
+//   Edge Function. The color bands are:
+//     ≥75 → green (strong match)
+//     ≥50 → yellow (worth considering)
+//     <50  → red (likely a poor fit)
+//
+// EXPANDABLE MATCH DETAILS:
+//   matchReasons and gaps are arrays returned by the AI alongside the score.
+//   They are hidden by default to keep the card compact and revealed on demand
+//   via the `expanded` toggle. This pattern lets users scan many cards quickly
+//   while still being able to drill into the reasoning.
+//
+// job.source (string like "Remotive" or "The Muse"):
+//   This is different from the `source` field on job_applications in the database.
+//   Here it identifies which API the listing came from, displayed as a pill badge.
+//
+// ADDING TO TRACKER:
+//   onAddToTracker(job) is called from FindJobsPage which calls createJob() in
+//   useJobs. The `adding` prop comes from FindJobsPage's addingId state, which
+//   tracks which card is mid-save so only that card's button shows a spinner.
+
 import { useState } from 'react'
 import { ExternalLink, Plus, ChevronDown, ChevronUp, MapPin, Wifi } from 'lucide-react'
 import Button from '../ui/Button'

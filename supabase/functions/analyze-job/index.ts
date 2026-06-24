@@ -1,3 +1,40 @@
+/* supabase/functions/analyze-job/index.ts
+
+   Supabase Edge Function — runs on Deno (not Node.js).
+   Receives a raw job description and returns a structured AI analysis via Claude.
+
+   WHY A SUPABASE EDGE FUNCTION?
+   The Anthropic API key must never be exposed in the browser bundle. Edge Functions
+   run on Supabase's infrastructure, read secrets from environment variables, and
+   expose a plain HTTP endpoint to the browser. Only authenticated Supabase users
+   can call this endpoint (the Authorization header is validated by Supabase's
+   gateway before the function even runs).
+
+   CORS HEADERS:
+   Browsers enforce the Same-Origin Policy and block cross-origin requests unless
+   the server includes Access-Control-Allow-* headers. The corsHeaders object is
+   included on every response (including errors) so the browser can read the body.
+   The OPTIONS preflight request must be answered with a 200 before the browser
+   will send the actual POST.
+
+   PROMPT DESIGN:
+   The prompt instructs Claude to return a specific JSON object with exact field
+   names and no wrapping markdown. "Return ONLY the raw JSON object" is critical —
+   if Claude adds ```json fences or explanatory text, JSON.parse() will fail.
+   The Edge Function wraps the parse in a try/catch and returns the raw text in
+   the error response to aid debugging.
+
+   MODEL CHOICE (claude-sonnet-4-6):
+   Sonnet is used for analysis because it produces high-quality structured output
+   for a single job description. The scout-jobs function uses Haiku (faster, cheaper)
+   for batch scoring because it runs across many jobs at once.
+
+   INPUT:  { jobDescription: string }
+   OUTPUT: { analysis: { requiredSkills, niceToHaveSkills, estimatedSalary,
+             experienceLevel, redFlags, keyResponsibilities, companyCultureHints,
+             applicationTips, overallFit } }
+*/
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {

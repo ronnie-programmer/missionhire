@@ -1,3 +1,26 @@
+// src/components/jobs/AddJobModal.jsx
+//
+// Modal form for creating a new job application. Resets its form state on every
+// close so it always opens fresh for the next entry.
+//
+// AUTO-DETECT SOURCE FROM URL:
+//   When the user pastes a URL into the job_url field, the set('job_url') handler
+//   calls detectPlatformFromUrl() on the value. If a known platform domain is found
+//   AND the source hasn't been manually selected yet, it auto-fills the source
+//   dropdown. This saves the user a step for the most common case.
+//
+// EMPTY STRING → NULL:
+//   Optional fields are converted from empty strings ('') to null before sending
+//   to Supabase. PostgreSQL stores empty strings and NULLs differently — NULL is
+//   the correct "not provided" value for optional columns with no data.
+//
+// FORM RESET:
+//   handleClose() resets both form state and errors. This ensures a stale partial
+//   form doesn't reappear if the user opens the modal again after canceling.
+//
+// INITIAL STATE object is defined outside the component so it is a stable reference
+// and doesn't get recreated on every render.
+
 import { useState } from 'react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'

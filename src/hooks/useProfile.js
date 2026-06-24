@@ -1,3 +1,29 @@
+// src/hooks/useProfile.js
+//
+// Custom hook that manages reading and writing the user's profile from the
+// `user_profiles` table, and transforms the stored data into the format
+// expected by the AI Edge Functions.
+//
+// UPSERT PATTERN:
+//   saveProfile() uses Supabase's .upsert() which performs an INSERT if no row
+//   exists for user_id, or an UPDATE if one does. This means the profile page
+//   works identically for new users (who have no profile yet) and returning
+//   users — no need for separate create/update logic.
+//
+// ERROR CODE 'PGRST116':
+//   When .single() finds zero rows it throws this specific PostgREST error code
+//   instead of returning null data. We explicitly ignore it because "no profile
+//   yet" is a normal state for a new user, not an error worth logging.
+//
+// toApiProfile():
+//   The `user_profiles` table stores data in snake_case (target_roles, skills, etc.)
+//   because that is PostgreSQL convention. The Edge Functions expect camelCase
+//   (targetRoles, skills, etc.) because that is JavaScript/JSON convention.
+//   This method converts between the two, acting as a data transform layer so
+//   neither the DB schema nor the API contract has to change to accommodate the other.
+//
+// Returns: { profile, loading, saveProfile, toApiProfile, refetch }
+
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
@@ -17,6 +43,8 @@ export function useProfile() {
         .select('*')
         .eq('user_id', user.id)
         .single()
+      // PGRST116 = "no rows found" — this is expected for new users who haven't
+      // filled out their profile yet, so we treat it as a non-error.
       if (error && error.code !== 'PGRST116') throw error
       setProfile(data || null)
     } catch (err) {
@@ -45,7 +73,9 @@ export function useProfile() {
     }
   }
 
-  // Shape profile into the format expected by edge functions
+  // toApiProfile converts snake_case DB fields to the camelCase format the Edge
+  // Functions expect. Centralizing this transform means if the API contract ever
+  // changes, we only update it here — not in every component that calls an AI function.
   function toApiProfile() {
     if (!profile) return null
     return {

@@ -1,3 +1,28 @@
+// src/pages/IntegrationsPage.jsx
+//
+// Third-party integrations hub: Gmail inbox scanner and direct job board search links.
+//
+// COMPONENT BREAKDOWN:
+//   GmailCard — self-contained card for the Gmail integration.
+//     Uses useGmail() hook for all state and logic.
+//     Displays connection status, a privacy disclaimer, scan trigger, and results.
+//     The "read-only" warning is displayed whenever connected to remind users
+//     MissionHire cannot send emails or modify their inbox — important for trust.
+//
+//   PlatformCard — renders a search input for one job board (LinkedIn, Indeed, etc.).
+//     When the user submits, it opens the platform's search URL in a new tab.
+//     window.open(..., 'noopener,noreferrer') prevents the opened tab from accessing
+//     window.opener, a security best practice for external links.
+//
+//   IntegrationsPage — the page layout. Renders one GmailCard and maps over
+//     SEARCHABLE_PLATFORMS to create a PlatformCard for each supported job board.
+//
+// DATABASE SETUP SECTION:
+//   The SQL snippet at the bottom is an ALTER TABLE migration. It is displayed here
+//   as a reminder/guide because source, contact_name, contact_email, and follow_up_date
+//   are optional columns that may not exist in every deployment. IF NOT EXISTS makes
+//   it safe to run multiple times.
+
 import { useState } from 'react'
 import { ExternalLink, Mail, CheckCircle2, RefreshCw, Inbox, AlertTriangle } from 'lucide-react'
 import { useGmail } from '../hooks/useGmail'

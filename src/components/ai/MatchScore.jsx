@@ -1,3 +1,31 @@
+// src/components/ai/MatchScore.jsx
+//
+// Scores the user's fit for a specific job against their saved profile.
+// Calls the `match-job` Edge Function which uses Claude Sonnet to analyze
+// the job description against the user's skills, experience, and background.
+//
+// PROPS:
+//   company — used in the prompt so Claude knows which employer it's evaluating
+//   role    — used in the prompt for context about the position
+//
+// SCORING WITHOUT A PROFILE:
+//   toApiProfile() returns null if no profile exists. The Edge Function handles
+//   this gracefully: it explicitly tells Claude to "score based on job quality
+//   alone" (i.e., evaluate the role's general desirability). This means the
+//   feature still works for users who skipped profile setup — they get a quality
+//   score rather than a personalized fit score.
+//
+// RESULT STRUCTURE FROM THE API:
+//   { score, summary, matchingSkills, strengths, gaps, recommendation }
+//   - score: 0–100 integer
+//   - recommendation: "Apply" | "Consider" | "Pass" — provides a decision signal
+//   - The color of the score number changes at 75 (green) and 50 (yellow) thresholds,
+//     matching the ScoreBadge color bands in JobResultCard.
+//
+// RecommendationBadge:
+//   Maps the "Apply" / "Consider" / "Pass" string to a color-coded pill.
+//   The default fallback to 'Consider' styling handles unexpected values safely.
+
 import { useState } from 'react'
 import axios from 'axios'
 import { Sparkles, CheckCircle, AlertCircle, TrendingUp } from 'lucide-react'

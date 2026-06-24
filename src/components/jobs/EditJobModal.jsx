@@ -1,3 +1,36 @@
+// src/components/jobs/EditJobModal.jsx
+//
+// Multi-tab modal for editing an existing job application. Combines the details
+// form with three AI-powered tools in a tabbed interface.
+//
+// TAB STRUCTURE:
+//   Details     — edit all job fields (same fields as AddJobModal)
+//   Match       — MatchScore component: score this job against your profile
+//   Cover Letter — CoverLetterGenerator: write a tailored cover letter
+//   Analyze JD  — JDAnalyzer: break down the job description for insights
+//
+//   WHY TABS INSTEAD OF SEPARATE PAGES?
+//   The AI tools are contextual to a specific job (they receive company + role as
+//   props). Opening them in a modal keeps the context clear and avoids adding new
+//   URL routes for every AI feature.
+//
+// JOB → FORM SYNC:
+//   The useEffect syncs form state whenever the `job` prop changes (i.e., when the
+//   user opens a different job). It also resets to the 'details' tab and clears
+//   errors so each job opens cleanly.
+//
+// DELETE FLOW:
+//   The delete button opens an inline ConfirmDialog (rendered outside the main
+//   Modal via a sibling React fragment). On confirm, onDelete() is called — which
+//   in DashboardPage sets deletingJob and closes EditJobModal, then opens the
+//   ConfirmDialog. The `showDelete` state here is a second guard specific to the
+//   edit modal's own delete confirmation.
+//
+// if (!job) return null:
+//   When editingJob is null in DashboardPage, the modal is not visible but this
+//   component is still mounted. Returning null avoids rendering a partial form with
+//   undefined values.
+
 import { useState, useEffect } from 'react'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'

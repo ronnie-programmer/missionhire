@@ -1,3 +1,48 @@
+/* supabase/functions/scout-jobs/index.ts
+
+   Supabase Edge Function that fetches live job listings from two external APIs
+   and batch-scores them against the user's profile using Claude Haiku.
+
+   ARCHITECTURE OVERVIEW:
+   1. Parse search parameters from the request body.
+   2. Fetch from Remotive (remote-focused job board, free API, no key needed).
+   3. Fetch from The Muse (broader job types, free API, no key needed).
+      - The Muse is only queried if remoteOnly is false OR Remotive returned < 8 results.
+   4. If the user has a profile, send ALL jobs to Claude Haiku in ONE batch call.
+   5. Return the scored, sorted jobs array.
+
+   WHY BATCH SCORE IN ONE CLAUDE CALL?
+   Scoring each job individually would mean N API calls to Claude — slow (serial
+   latency) and expensive. Instead, all job summaries are serialized as a JSON array
+   in a single prompt. Claude returns a JSON array of scores in the same order.
+   One call, N results. This is the key architectural decision that makes the
+   feature fast enough to be usable (typically 5–10s total).
+
+   MODEL CHOICE (claude-haiku-4-5-20251001 for scoring):
+   Haiku is the fastest and cheapest Claude model — ideal for batch operations
+   where quality is less critical than throughput. The prompt's structured output
+   format (JSON array) keeps Haiku's output deterministic enough to parse reliably.
+
+   ABORT SIGNAL:
+   AbortSignal.timeout(8000) cancels the external API fetch if it takes more than
+   8 seconds. Without this, a slow or hung external API would block the function
+   until Supabase's 30-second timeout, degrading UX for all users.
+
+   HTML STRIPPING:
+   Job descriptions from Remotive and The Muse contain HTML markup. The regex
+   .replace(/<[^>]+>/g, '') strips tags before including the text in the prompt,
+   which reduces token usage and avoids confusing Claude with raw HTML.
+
+   ERROR RESILIENCE:
+   Each external API fetch is wrapped in its own try/catch. If Remotive fails,
+   the function continues with The Muse results. If The Muse also fails, the
+   function returns an empty jobs array with a message rather than a 500 error.
+
+   INPUT:  { query, location, remoteOnly, userProfile? }
+   OUTPUT: { jobs: Array<{ id, title, company, location, remote, url, tags,
+             salary, source, score, matchReasons, gaps, headline }> }
+*/
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 const corsHeaders = {
@@ -24,7 +69,10 @@ serve(async (req) => {
     const jobs: any[] = [];
     const searchTerm = query || "software engineer";
 
-    // Fetch from Remotive (free, no API key, remote jobs)
+    // Fetch from Remotive (free, no API key, remote jobs).
+    // AbortSignal.timeout(8000) cancels the fetch after 8s so a slow API
+    // doesn't hold up the entire response. The catch block lets us continue
+    // with The Muse results even if Remotive fails.
     try {
       const res = await fetch(
         `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(searchTerm)}&limit=15`,
@@ -34,7 +82,7 @@ serve(async (req) => {
         const data = await res.json();
         for (const j of (data.jobs || []).slice(0, 15)) {
           jobs.push({
-            id: `remotive-${j.id}`,
+            id: `remotive-${j.id}`,  // prefix prevents ID collision with Muse jobs
             title: j.title,
             company: j.company_name,
             location: j.candidate_required_location || "Remote",
@@ -49,7 +97,10 @@ serve(async (req) => {
       }
     } catch (_) { /* continue without Remotive */ }
 
-    // Fetch from The Muse (free, no API key, broader job types)
+    // Fetch from The Muse (free, no API key, broader job types).
+    // Skipped entirely if remoteOnly=true AND Remotive returned enough results (>=8).
+    // The Muse API doesn't support keyword search natively — we fetch by location
+    // and filter client-side by job title and category name.
     if (!remoteOnly || jobs.length < 8) {
       try {
         const museLocation = location ? `&location=${encodeURIComponent(location)}` : "";
@@ -88,9 +139,16 @@ serve(async (req) => {
       );
     }
 
-    // Batch score all jobs with one Claude call if profile exists
+    // BATCH SCORING — the key architectural decision of this function.
+    // All jobs are scored in a single Claude call (rather than N individual calls)
+    // to keep latency and API costs manageable. See the file header for full explanation.
+    //
+    // Default scoredJobs has null score — shown as unscored if Claude call fails or
+    // if the user has no profile. The UI in JobResultCard handles score === null gracefully.
     let scoredJobs = jobs.map((j) => ({ ...j, score: null, matchReasons: [], gaps: [], headline: "" }));
 
+    // Only score if the user has at least some profile data to compare against.
+    // An empty profile would produce meaningless scores — better to skip scoring.
     const hasProfile = userProfile && (
       (userProfile.skills?.length > 0) ||
       (userProfile.targetRoles?.length > 0) ||
@@ -98,6 +156,8 @@ serve(async (req) => {
     );
 
     if (hasProfile) {
+      // Serialize profile fields into plain text for the prompt.
+      // .filter(Boolean) removes empty lines when optional fields are absent.
       const profileLines = [
         userProfile.targetRoles?.length ? `Target Roles: ${userProfile.targetRoles.join(", ")}` : "",
         userProfile.skills?.length ? `Skills: ${userProfile.skills.join(", ")}` : "",
@@ -106,6 +166,10 @@ serve(async (req) => {
         userProfile.resumeText ? `Background: ${userProfile.resumeText.slice(0, 500)}` : "",
       ].filter(Boolean).join("\n");
 
+      // Send only the fields Claude needs for scoring — not the full job objects.
+      // id is the array index so we can match scores back to the original jobs array.
+      // desc is truncated to 300 chars; the key signals (title, tags, remote) are more
+      // important for scoring than reading the full description.
       const jobSummaries = jobs.map((j, i) => ({
         id: i,
         title: j.title,
@@ -128,6 +192,10 @@ Return a JSON array — one entry per job, same order:
 
 Only return the raw JSON array, no explanation.`;
 
+      // Claude Haiku is used here for speed and cost efficiency.
+      // max_tokens: 2048 is enough for scoring up to ~25 jobs with brief explanations.
+      // If the Claude call fails for any reason, we fall through to returning the
+      // unscored jobs (score: null) — graceful degradation over a hard failure.
       try {
         const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
@@ -147,6 +215,9 @@ Only return the raw JSON array, no explanation.`;
           const aiData = await aiRes.json();
           const raw = aiData.content[0]?.text || "[]";
           const scores = JSON.parse(raw);
+          // Match each score entry back to its original job by array index.
+          // scores.find() by id is used rather than direct indexing because
+          // Claude might occasionally reorder or skip an entry.
           scoredJobs = jobs.map((j, i) => {
             const s = scores.find((x: any) => x.id === i) || {};
             return {
@@ -157,6 +228,8 @@ Only return the raw JSON array, no explanation.`;
               headline: s.headline || "",
             };
           });
+          // Sort by score descending so the best matches appear first.
+          // ?? 0 treats unscored jobs as 0 (they sort to the bottom).
           scoredJobs.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
         }
       } catch (_) { /* return unscored jobs */ }

@@ -1,3 +1,29 @@
+// src/pages/LoginPage.jsx
+//
+// Email/password login page. Users who are already authenticated are redirected
+// away from this page by the PublicRoute guard in App.jsx before it even renders.
+//
+// CLIENT-SIDE VALIDATION:
+//   The validate() function runs before calling the API to give instant feedback
+//   without a network round trip. It checks the email format with a simple regex
+//   and ensures the password field is not empty.
+//   WHY NOT rely on browser native validation (required, type="email")?
+//   Native validation only runs on form submit, lacks custom error styling, and
+//   can't be easily suppressed for programmatic form submission. Our approach
+//   gives full control over the error UI.
+//
+// ERROR HANDLING:
+//   Supabase returns specific error message strings for auth failures. We inspect
+//   the message to display targeted feedback:
+//   - "Email not confirmed" → user registered but hasn't clicked the email link yet
+//   - "Invalid login credentials" → wrong email or password (inline field error,
+//     not a toast — clearer placement for the user)
+//   - anything else → fallback toast notification
+//
+// After successful login, the onAuthStateChange listener in AuthContext fires,
+// updates `user`, and the PublicRoute guard in App.jsx redirects to /dashboard.
+// No explicit navigate() call is needed here.
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Briefcase } from 'lucide-react'

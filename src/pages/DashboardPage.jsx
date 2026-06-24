@@ -1,3 +1,33 @@
+// src/pages/DashboardPage.jsx
+//
+// Main job tracker dashboard. Combines the Kanban board, search/filter, stats
+// summary, and CRUD modals in one view.
+//
+// STATE MANAGED HERE (not in a hook):
+//   - search: the filter string for client-side job filtering
+//   - showAdd: controls AddJobModal visibility
+//   - editingJob: the job object being edited (null = modal closed)
+//   - deletingJob: the job to confirm-delete (null = dialog closed)
+//   These are UI-layer concerns, not data concerns, so they belong in this component
+//   rather than in useJobs.
+//
+// CLIENT-SIDE FILTERING:
+//   The `filtered` array is derived from `jobs` on every render by searching
+//   company, role_title, and notes fields. This runs entirely in the browser —
+//   no extra DB query for each keystroke. This is fine at typical job tracker scale
+//   (tens to hundreds of rows). At thousands of rows, server-side filtering would
+//   be more appropriate.
+//
+// DELETE FLOW:
+//   Deletion goes through a two-step confirm dialog to prevent accidental deletes.
+//   setDeletingJob(job) → opens ConfirmDialog → handleDeleteConfirm() → deleteJob()
+//   The EditJobModal also routes deletions through this same ConfirmDialog by calling
+//   setDeletingJob and closing itself first.
+//
+// USERNAME DISPLAY:
+//   user.email.split('@')[0] extracts the part before the @ as a quick display name.
+//   The app doesn't require a separate full_name field just to greet the user.
+
 import { useState } from 'react'
 import { Plus, Search, RefreshCw } from 'lucide-react'
 import { useJobs } from '../hooks/useJobs'

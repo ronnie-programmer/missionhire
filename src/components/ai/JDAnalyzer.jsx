@@ -1,3 +1,30 @@
+// src/components/ai/JDAnalyzer.jsx
+//
+// AI-powered job description analyzer. Sends a raw job description to the
+// `analyze-job` Supabase Edge Function which calls Claude to extract structured
+// insights: required skills, red flags, responsibilities, culture signals, etc.
+//
+// WHY AN EDGE FUNCTION INSTEAD OF CALLING CLAUDE DIRECTLY FROM THE BROWSER?
+//   The Anthropic API key is a secret that must not be exposed in browser code
+//   (it would be visible in the network tab or source). Edge Functions run on
+//   Supabase's server infrastructure and can safely read secrets from environment
+//   variables. The browser never sees the API key.
+//
+// AUTH FLOW FOR EDGE FUNCTIONS:
+//   The JWT from supabase.auth.getSession() is sent as a Bearer token.
+//   The Edge Function can optionally verify this token to ensure only
+//   authenticated users can call it (preventing unauthorized API usage).
+//
+// THE PROMPT DESIGN (in analyze-job/index.ts):
+//   The prompt instructs Claude to return ONLY a raw JSON object with specific
+//   field names. No markdown, no explanation. This makes parsing reliable —
+//   we simply JSON.parse() the response text. The Edge Function handles parse
+//   errors gracefully and returns a 500 with the raw text for debugging.
+//
+// SMALL HELPER COMPONENTS (Tags, Section, BulletList):
+//   Breaking the result display into small presentational components keeps the
+//   render tree readable. Each receives only the data it needs.
+
 import { useState } from 'react'
 import axios from 'axios'
 import Button from '../ui/Button'

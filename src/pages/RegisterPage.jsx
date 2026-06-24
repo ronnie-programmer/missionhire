@@ -1,3 +1,27 @@
+// src/pages/RegisterPage.jsx
+//
+// New account registration page. After a successful sign-up, instead of
+// redirecting to the dashboard, the page switches to a confirmation notice
+// because Supabase requires email verification before the account is active.
+//
+// TWO-PHASE UI PATTERN:
+//   The component renders either the registration form OR the success state,
+//   controlled by the `success` boolean flag. This avoids a page navigation
+//   and keeps the confirmation message in context (the user can see they just
+//   came from registration). The email is saved in `confirmedEmail` so it can
+//   be displayed in the success message.
+//
+// VALIDATION RULES:
+//   - Email: required + regex format check
+//   - Password: required + minimum 8 characters (Supabase's default minimum)
+//   - Confirm: must exactly match the password field
+//   Errors are shown per-field so the user knows exactly which input to fix.
+//
+// AFTER REGISTRATION:
+//   Supabase sends a confirmation email with a link to /confirm?token=...
+//   The ConfirmPage handles that token and creates the active session.
+//   The user is NOT logged in at this point — they must click the email link.
+
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Briefcase, CheckCircle } from 'lucide-react'

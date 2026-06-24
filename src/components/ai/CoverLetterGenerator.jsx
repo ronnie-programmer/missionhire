@@ -1,3 +1,32 @@
+// src/components/ai/CoverLetterGenerator.jsx
+//
+// AI cover letter generator. Takes the job description (pasted by user) plus
+// their background summary and sends it to the `generate-cover-letter` Edge
+// Function, which calls Claude Sonnet to write a tailored cover letter.
+//
+// PROPS:
+//   company — the company name from the job being edited
+//   role    — the role title from the job being edited
+//   Both are injected by EditJobModal so Claude has context about the target role.
+//
+// PROFILE AUTO-FILL:
+//   If the user has resume_text saved in their profile, it is pre-populated into
+//   the userBackground textarea (sliced to 600 characters to stay within the
+//   Edge Function's input limits). The user can still edit it before generating.
+//   The useEffect dependency array intentionally omits `userBackground` to only
+//   run once on profile load, not on every background keystroke.
+//
+// SYSTEM vs. USER PROMPT (in generate-cover-letter/index.ts):
+//   Claude's API accepts a separate `system` field for persistent instructions
+//   and a `messages` array for the conversation. The system prompt sets tone and
+//   format rules once; the user message provides the job-specific content.
+//   This separation keeps the AI's persona stable across different job descriptions.
+//
+// COPY TO CLIPBOARD:
+//   After generating, the copy button uses navigator.clipboard.writeText() (the
+//   modern clipboard API). The `copied` state switches the icon to a checkmark
+//   briefly as confirmation before resetting.
+
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Button from '../ui/Button'

@@ -1,3 +1,27 @@
+// src/utils/constants.js
+//
+// Application-wide constants for job application statuses and API configuration.
+//
+// STATUS_CONFIG is the single source of truth for Kanban column appearance.
+// Every part of the UI that needs to display or style a status (Kanban columns,
+// stats bar, etc.) imports from here. Changing a label or color in this file
+// automatically updates the entire app.
+//
+// STATUS_CONFIG structure per entry:
+//   label       — human-readable column name displayed in the UI
+//   lightColor  — semi-transparent background for the column header and status badges
+//   textColor   — text color for the status label and count
+//   borderColor — border color used on cards and column headers
+//   dotColor    — color of the small status indicator dot
+//
+// STATUSES is derived from STATUS_CONFIG using Object.keys() so the order of
+// Kanban columns is always determined by the order of entries in STATUS_CONFIG.
+// This means reordering columns only requires reordering the config object.
+//
+// SUPABASE_FUNCTIONS_URL points to the base URL for all Supabase Edge Functions.
+// Using an env var instead of hardcoding allows different URLs for dev/prod without
+// code changes. Format: https://<project-id>.supabase.co/functions/v1
+
 export const STATUS_CONFIG = {
   saved: {
     label: 'Saved',

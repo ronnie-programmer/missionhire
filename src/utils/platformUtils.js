@@ -1,3 +1,34 @@
+// src/utils/platformUtils.js
+//
+// Job platform definitions and URL-to-platform detection utility.
+//
+// PLATFORMS is a registry of every job source the app knows about.
+// Each platform entry contains:
+//   label       — display name shown in UI badges and dropdowns
+//   textColor   — Tailwind class for badge text color
+//   borderColor — Tailwind class for badge border color
+//   bgColor     — Tailwind class for badge background color
+//   dotColor    — Tailwind class for the small indicator dot
+//   searchUrl   — function(query) that returns the platform's job search URL,
+//                 or null if the platform doesn't support direct search (Direct, Other)
+//   domains     — list of URL substrings used by detectPlatformFromUrl() to
+//                 identify which platform a job URL belongs to
+//
+// WHY COMBINE VISUAL CONFIG WITH DATA?
+//   Keeping the label, colors, and URL builder together means adding a new
+//   platform requires touching exactly one object — no need to synchronize
+//   separate arrays or switch statements across the codebase.
+//
+// SEARCHABLE_PLATFORMS is a subset of platform keys that have searchUrl functions.
+// Used by PlatformSearch.jsx and IntegrationsPage.jsx to render search widgets
+// only for platforms that support direct search.
+//
+// detectPlatformFromUrl(url):
+//   Iterates platform domains and checks if the URL (lowercased) contains each
+//   domain string. Returns the matching platform key or 'direct' as a fallback.
+//   Used in AddJobModal and EditJobModal to auto-fill the source field when a
+//   user pastes a job URL.
+
 export const PLATFORMS = {
   linkedin: {
     label: 'LinkedIn',
