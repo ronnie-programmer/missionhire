@@ -60,6 +60,7 @@ export default function MatchScore({ company, role }) {
     setResult(null)
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { toast.error('Session expired. Please log in again.'); return }
       const res = await axios.post(
         `${SUPABASE_FUNCTIONS_URL}/match-job`,
         { jobDescription, company, role, userProfile: toApiProfile() },

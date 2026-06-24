@@ -27,7 +27,7 @@
 //   job_applications with status='saved'. The `addingId` state tracks which card
 //   is currently being added so its button shows a loading state.
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, AlertCircle, Briefcase } from 'lucide-react'
 import { useJobScout } from '../hooks/useJobScout'
@@ -47,18 +47,26 @@ const LOADING_MESSAGES = [
 
 function useLoadingMessage(loading) {
   const [idx, setIdx] = useState(0)
-  const [started, setStarted] = useState(false)
+  const intervalRef = useRef(null)
 
-  if (loading && !started) {
-    setStarted(true)
-    setIdx(0)
-    const interval = setInterval(() => setIdx(i => {
-      if (i >= LOADING_MESSAGES.length - 1) { clearInterval(interval); return i }
-      return i + 1
-    }), 2000)
-  } else if (!loading && started) {
-    setStarted(false)
-  }
+  useEffect(() => {
+    if (loading) {
+      setIdx(0)
+      intervalRef.current = setInterval(() => {
+        setIdx(i => {
+          if (i >= LOADING_MESSAGES.length - 1) {
+            clearInterval(intervalRef.current)
+            return i
+          }
+          return i + 1
+        })
+      }, 2000)
+    }
+    return () => {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [loading])
 
   return LOADING_MESSAGES[idx]
 }

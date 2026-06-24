@@ -40,7 +40,7 @@ export function useJobs() {
   // It only changes when `user` changes — critical to avoid the infinite loop
   // described in the file header.
   const fetchJobs = useCallback(async () => {
-    if (!user) return
+    if (!user) { setLoading(false); return }
     try {
       setLoading(true)
       setError(null)

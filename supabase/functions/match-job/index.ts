@@ -44,7 +44,7 @@ serve(async (req) => {
   try {
     const { jobDescription, company, role, userProfile } = await req.json();
 
-    if (!jobDescription) {
+    if (!jobDescription || !jobDescription.trim()) {
       return new Response(
         JSON.stringify({ error: "jobDescription is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

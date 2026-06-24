@@ -27,7 +27,7 @@
 //   modern clipboard API). The `copied` state switches the icon to a checkmark
 //   briefly as confirmation before resetting.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import Button from '../ui/Button'
 import { Copy, Check } from 'lucide-react'
@@ -43,9 +43,13 @@ export default function CoverLetterGenerator({ company, role }) {
   const [coverLetter, setCoverLetter] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  // Track whether we have already auto-populated from profile to avoid
+  // overwriting text the user has typed if the profile state is updated.
+  const autoFilledRef = useRef(false)
 
   useEffect(() => {
-    if (profile?.resume_text && !userBackground) {
+    if (profile?.resume_text && !autoFilledRef.current) {
+      autoFilledRef.current = true
       setUserBackground(profile.resume_text.slice(0, 600))
     }
   }, [profile])
@@ -56,6 +60,7 @@ export default function CoverLetterGenerator({ company, role }) {
     setCoverLetter('')
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { toast.error('Session expired. Please log in again.'); return }
       const res = await axios.post(
         `${SUPABASE_FUNCTIONS_URL}/generate-cover-letter`,
         { jobDescription, company, role, userBackground },
