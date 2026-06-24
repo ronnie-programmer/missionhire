@@ -1,17 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Button from '../ui/Button'
 import { Copy, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { SUPABASE_FUNCTIONS_URL } from '../../utils/constants'
 import { supabase } from '../../lib/supabase'
+import { useProfile } from '../../hooks/useProfile'
 
 export default function CoverLetterGenerator({ company, role }) {
+  const { profile } = useProfile()
   const [jobDescription, setJobDescription] = useState('')
   const [userBackground, setUserBackground] = useState('')
   const [coverLetter, setCoverLetter] = useState('')
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (profile?.resume_text && !userBackground) {
+      setUserBackground(profile.resume_text.slice(0, 600))
+    }
+  }, [profile])
 
   async function generate() {
     if (!jobDescription.trim()) { toast.error('Paste a job description first'); return }
@@ -55,7 +63,10 @@ export default function CoverLetterGenerator({ company, role }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-slate-300">Your Background (optional)</label>
+        <label className="text-sm font-medium text-slate-300">
+          Your Background
+          {profile?.resume_text && <span className="text-indigo-400 text-xs ml-2">(from your profile)</span>}
+        </label>
         <textarea rows={3} value={userBackground} onChange={e => setUserBackground(e.target.value)}
           placeholder="Brief summary of your experience to emphasize..."
           className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-slate-100 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" />

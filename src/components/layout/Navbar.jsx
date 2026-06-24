@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LogOut, Briefcase, Plug } from 'lucide-react'
+import { LogOut, Briefcase, Plug, Search, User } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 
@@ -41,6 +41,10 @@ export default function Navbar() {
                 <Briefcase size={14} />
                 Tracker
               </Link>
+              <Link to="/find-jobs" className={navClass('/find-jobs')}>
+                <Search size={14} />
+                Find Jobs
+              </Link>
               <Link to="/integrations" className={navClass('/integrations')}>
                 <Plug size={14} />
                 Integrations
@@ -49,9 +53,22 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {user && (
-            <span className="text-sm text-slate-400 hidden md:block truncate max-w-[200px]">
+            <Link
+              to="/profile"
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                pathname === '/profile'
+                  ? 'text-white bg-slate-700'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <User size={14} />
+              <span className="hidden md:inline">Profile</span>
+            </Link>
+          )}
+          {user && (
+            <span className="text-sm text-slate-500 hidden md:block truncate max-w-[180px]">
               {user.email}
             </span>
           )}

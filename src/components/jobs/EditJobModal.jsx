@@ -5,11 +5,13 @@ import Input from '../ui/Input'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import CoverLetterGenerator from '../ai/CoverLetterGenerator'
 import JDAnalyzer from '../ai/JDAnalyzer'
-import { Settings, FileText, Sparkles, Trash2 } from 'lucide-react'
+import MatchScore from '../ai/MatchScore'
+import { Settings, FileText, Sparkles, Target, Trash2 } from 'lucide-react'
 import { PLATFORMS, detectPlatformFromUrl } from '../../utils/platformUtils'
 
 const TABS = [
   { id: 'details', label: 'Details', Icon: Settings },
+  { id: 'match', label: 'Match', Icon: Target },
   { id: 'cover-letter', label: 'Cover Letter', Icon: FileText },
   { id: 'analyze', label: 'Analyze JD', Icon: Sparkles },
 ]
@@ -166,6 +168,10 @@ export default function EditJobModal({ isOpen, onClose, job, onUpdate, onDelete 
               </div>
             </div>
           </form>
+        )}
+
+        {activeTab === 'match' && (
+          <MatchScore company={job.company} role={job.role_title} />
         )}
 
         {activeTab === 'cover-letter' && (

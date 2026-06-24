@@ -6,6 +6,8 @@ import RegisterPage from './pages/RegisterPage'
 import ConfirmPage from './pages/ConfirmPage'
 import DashboardPage from './pages/DashboardPage'
 import IntegrationsPage from './pages/IntegrationsPage'
+import ProfilePage from './pages/ProfilePage'
+import FindJobsPage from './pages/FindJobsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import Spinner from './components/ui/Spinner'
 
@@ -49,6 +51,18 @@ export default function App() {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Layout><DashboardPage /></Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/find-jobs" element={
+        <ProtectedRoute>
+          <Layout><FindJobsPage /></Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Layout><ProfilePage /></Layout>
         </ProtectedRoute>
       } />
 
